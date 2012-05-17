@@ -148,6 +148,10 @@
                       rvm_color=${!rvm_color}
                      venv_color=${!venv_color}
                     clock_color=${!clock_color}
+                      dir_color=${!dir_color}
+                       rc_color=${!rc_color}
+                  user_id_color=${!user_id_color}
+                  root_id_color=${!root_id_color}
 
         unset PROMPT_COMMAND
 
@@ -291,11 +295,6 @@ set_shell_label() {
                 xterm* | rxvt* | gnome-terminal | konsole | eterm* | wterm | cygwin)  unset tty ;;
                 *);;
         esac
-
-        dir_color=${!dir_color}
-        rc_color=${!rc_color}
-        user_id_color=${!user_id_color}
-        root_id_color=${!root_id_color}
 
         ########################################################### HOST
         ### we don't display home host/domain  $SSH_* set by SSHD or keychain
@@ -531,7 +530,7 @@ parse_git_status() {
         fi
 
         #### branch
-        branch=${branch/master/M}
+        #branch=${branch/master/M}
 
                         # another method of above:
                         # branch=$(git symbolic-ref -q HEAD || { echo -n "detached:" ; git name-rev --name-only HEAD 2>/dev/null; } )
@@ -634,7 +633,7 @@ parse_vcs_status() {
         fi
 
 
-        head_local="$vcs_color(${vcs_info}$vcs_color${file_list}$vcs_color)"
+        head_local=" $vcs_color(${vcs_info}$vcs_color${file_list}$vcs_color)"
 
         ### fringes
         head_local="${head_local+$vcs_color$head_local}"
@@ -690,7 +689,7 @@ declare -ft enable_set_shell_label
 #      END  { for (i=NR;i>0;i--)
 #             print line[i] }' listlogs
 
-j (){
+function j (){
         : ${1? usage: j dir-beginning}
         # go in ring buffer starting from current index.  cd to first matching dir
         for (( i=(aj_idx-1)%aj_max;   i != aj_idx%aj_max;  i=(--i+aj_max)%aj_max )) ; do
@@ -712,7 +711,7 @@ prompt_command_function() {
         if [[ "$rc" == "0" ]]; then
                 rc=""
         else
-                rc="$colors_reset($rc_color$rc$colors_reset)$bell"
+                rc=" $colors_reset($rc_color$rc$colors_reset)$bell"
         fi
 
         cwd=${PWD/$HOME/\~}                     # substitute  "~"
@@ -721,8 +720,8 @@ prompt_command_function() {
         parse_vcs_status
         [[ $rvm_module = "on" ]] && type rvm >&/dev/null && parse_rvm_status
         [[ $venv_module = "on" ]] && type virtualenv >&/dev/null && parse_venv_status
-        [[ $clock_module = "on" ]] && local clock="$colors_reset[$clock_color$(date +$clock_format)$colors_reset]"
-
+        [[ $clock_module = "on" ]] && local clock="$(date +$clock_format)"
+src=
 
 
         # autojump
@@ -734,7 +733,15 @@ prompt_command_function() {
         # else eval cwd_cmd,  cwd should have path after exection
         eval "${cwd_cmd/\\/cwd=\\\\}"
 
-        PS1="$colors_reset$clock$color_who_where$colors_reset:$dir_color$cwd$tail_local$dir_color$venv_info$rvm_info$head_local$colors_reset$rc$user_id_color$prompt_char$colors_reset "
+        PS1L="$colors_reset$color_who_where$colors_reset:$dir_color$cwd$color_reset$tail_local$dir_color$venv_info$rvm_info$head_local$colors_reset$rc"
+        PS1L2="$user_id_color$prompt_char$colors_reset "
+        PS1R="[$clock_color$clock$colors_reset]"
+
+        PS1LC=$(echo "$PS1L" | sed -e 's/\\\[[^\w]*\\\]//g')
+        PS1LW=${#PS1LC}
+        CW=$((COLUMNS - PS1LW - 10))
+
+        printf -v PS1 "\n%b%${CW}.${CW}s%b\n%b" "$PS1L" " " "$PS1R" "$PS1L2"
 
         unset head_local tail_local pwd
  }
