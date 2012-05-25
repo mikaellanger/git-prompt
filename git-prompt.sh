@@ -238,7 +238,7 @@ set_shell_label() {
 
         xterm_label() {
                 local args="$*"
-                echo  -n "]2;${args:0:200}" ;    # FIXME: replace hardcodes with terminfo codes
+                echo  -n "]1;${args:0:200}" ;    # FIXME: replace hardcodes with terminfo codes
         }   
 
         screen_label() {
@@ -731,7 +731,7 @@ src=
 
         # if cwd_cmd have back-slash, then assign it value to cwd
         # else eval cwd_cmd,  cwd should have path after exection
-        eval "${cwd_cmd/\\/cwd=\\\\}"
+	eval "${cwd_cmd/\\/cwd=\\\\}"
 
         PS1L="$colors_reset$color_who_where$colors_reset:$dir_color$cwd$color_reset$tail_local$dir_color$venv_info$rvm_info$head_local$colors_reset$rc"
         PS1L2="$user_id_color$prompt_char$colors_reset "
